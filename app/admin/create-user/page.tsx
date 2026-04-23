@@ -3,18 +3,19 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function CreateUserPage() {
   const router = useRouter()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
   const [authorized, setAuthorized] = useState(false)
 
-  // ⚠️ SOLO TU CORREO PUEDE ACCEDER
   const ADMIN_EMAIL = 'ortizalvarogiovanni@gmail.com'
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export default function CreateUserPage() {
     setMessage(null)
 
     try {
-      const res = await fetch('/api/create-user', {
+      const res = await fetch('/api/create-socio', { // 🔥 CORREGIDO
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -78,14 +79,24 @@ export default function CreateUserPage() {
             className="w-full bg-black/40 border border-white/10 p-4 rounded-xl text-white"
           />
 
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full bg-black/40 border border-white/10 p-4 rounded-xl text-white"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full bg-black/40 border border-white/10 p-4 pr-12 rounded-xl text-white"
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-[#10b981]"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
 
           <button
             type="submit"
