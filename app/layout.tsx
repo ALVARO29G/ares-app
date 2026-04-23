@@ -4,10 +4,18 @@ import Script from 'next/script'
 import CookieBanner from './components/CookieBanner'
 
 export const metadata: Metadata = {
+
+  metadataBase: new URL('https://canchasleon.com'),
+
   title: {
     default: 'ARES FUTBOL LEÓN | Radar de Sedes Deportivas',
     template: '%s | ARES FUTBOL LEÓN'
   },
+
+  alternates: {
+    canonical: 'https://canchasleon.com',
+  },
+  
   description: 'Encuentra las mejores canchas de fútbol en León, Guanajuato. Conecta con sedes, consulta torneos, tablas de posiciones y goleo en tiempo real.',
   keywords: ['fútbol', 'León', 'Guanajuato', 'canchas', 'sedes', 'torneos', 'futbol rápido', 'radar deportivo'],
   authors: [{ name: 'ARES FUTBOL LEÓN' }],
