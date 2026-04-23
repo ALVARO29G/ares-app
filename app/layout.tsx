@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Script from 'next/script'
+import CookieBanner from './components/CookieBanner'
 
 export const metadata: Metadata = {
   title: {
@@ -51,7 +52,7 @@ export const metadata: Metadata = {
     apple: '/apple-icon.png',
   },
   verification: {
-    google: 'XXXXXXXXXXXXXXXXXXXX', // ← Reemplaza con tu código de verificación de Search Console
+    google: 'XXXXXXXXXXXXXXXXXXXX',
   },
 }
 
@@ -63,21 +64,34 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
-        {/* Google Analytics */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-3NCLPW28LM"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
+        {/* ✅ Google Analytics SOLO con consentimiento */}
+        <Script id="google-analytics-consent" strategy="afterInteractive">
           {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-3NCLPW28LM');
+            const consent = localStorage.getItem('ares_cookie_consent');
+
+            if (consent === 'accepted') {
+              const script = document.createElement('script');
+              script.src = 'https://www.googletagmanager.com/gtag/js?id=G-3NCLPW28LM';
+              script.async = true;
+              document.head.appendChild(script);
+
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              window.gtag = gtag;
+
+              gtag('js', new Date());
+              gtag('config', 'G-3NCLPW28LM');
+            }
           `}
         </Script>
       </head>
-      <body>{children}</body>
+
+      <body>
+        {children}
+
+        {/* ✅ Cookie Banner correctamente posicionado */}
+        <CookieBanner />
+      </body>
     </html>
   )
 }
