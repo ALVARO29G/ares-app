@@ -2,14 +2,14 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import Link from 'next/link'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
+  const [mounted, setMounted] = useState(false)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -18,15 +18,21 @@ export default function ResetPasswordPage() {
   const [success, setSuccess] = useState(false)
   const [hasSession, setHasSession] = useState(false)
 
+  // 🔥 evita errores de prerender
   useEffect(() => {
+    setMounted(true)
+
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
+      const { data } = await supabase.auth.getSession()
+      if (data.session) {
         setHasSession(true)
       }
     }
+
     checkSession()
   }, [])
+
+  if (!mounted) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,7 +51,7 @@ export default function ResetPasswordPage() {
     setLoading(true)
 
     const { error } = await supabase.auth.updateUser({
-      password: password
+      password: password,
     })
 
     if (error) {
@@ -66,7 +72,10 @@ export default function ResetPasswordPage() {
         <p className="text-red-400 uppercase tracking-widest text-sm mb-4">
           Enlace inválido o expirado
         </p>
-        <Link href="/login" className="text-[#10b981] font-black text-[10px] uppercase tracking-widest">
+        <Link
+          href="/login"
+          className="text-[#10b981] font-black text-[10px] uppercase tracking-widest"
+        >
           ← Volver al Login
         </Link>
       </div>
@@ -90,8 +99,12 @@ export default function ResetPasswordPage() {
         {success ? (
           <div className="text-center space-y-4">
             <div className="bg-[#10b981]/10 border border-[#10b981]/30 text-[#10b981] p-6 rounded-2xl">
-              <p className="font-black uppercase text-sm">✅ Contraseña actualizada</p>
-              <p className="text-xs mt-2 opacity-70">Redirigiendo al login...</p>
+              <p className="font-black uppercase text-sm">
+                ✅ Contraseña actualizada
+              </p>
+              <p className="text-xs mt-2 opacity-70">
+                Redirigiendo al login...
+              </p>
             </div>
           </div>
         ) : (
@@ -100,20 +113,22 @@ export default function ResetPasswordPage() {
               <label className="text-[9px] text-[#10b981] font-black ml-4 uppercase tracking-widest">
                 Nueva Access_Key
               </label>
+
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="NUEVA CONTRASEÑA"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-4 pr-12 text-white font-mono text-xs focus:border-[#10b981] outline-none transition-all placeholder:text-white/10"
+                  className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-4 pr-14 text-white font-mono text-xs focus:border-[#10b981] outline-none transition-all placeholder:text-white/10"
                   required
                   disabled={loading}
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-[#10b981] transition-colors"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-[#10b981]/60 hover:text-[#10b981] transition-all"
                 >
                   {showPassword ? '👁️' : '👁️‍🗨️'}
                 </button>
@@ -124,6 +139,7 @@ export default function ResetPasswordPage() {
               <label className="text-[9px] text-[#10b981] font-black ml-4 uppercase tracking-widest">
                 Confirmar Clave
               </label>
+
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="CONFIRMAR CONTRASEÑA"
