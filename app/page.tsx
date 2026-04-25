@@ -98,6 +98,23 @@ export default function AresApp() {
     }
   }
 
+  const eliminarSede = async (id: string, nombre: string) => {
+  if (!confirm(`¿Estás seguro de eliminar la sede "${nombre}"? Esta acción borrará también todos sus torneos, equipos y goleadores. NO se puede deshacer.`)) return
+
+  const { error } = await supabase
+    .from('sedes')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    alert('Error al eliminar la sede: ' + error.message)
+    return
+  }
+
+  alert(`Sede "${nombre}" eliminada correctamente`)
+  fetchSedes()
+}
+
  const guardarSede = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault()
   setLoading(true)
@@ -301,7 +318,10 @@ export default function AresApp() {
                 <tr>
                   <th className="px-8 py-4">Unidad</th>
                   <th className="px-8 py-4">Ubicación</th>
+
                   <th className="px-8 py-4 text-right">Acción</th>
+                  <th className="px-8 py-4 text-right"></th>
+
                 </tr>
               </thead>
               <tbody className="font-black uppercase text-sm">
@@ -310,14 +330,22 @@ export default function AresApp() {
                     <td className="px-8 py-6 text-lg tracking-tighter text-gray-900">{s.nombre}</td>
                     <td className="px-8 py-6 text-gray-500 text-xs">{s.ubicacion_texto}</td>
 
-                    <td className="px-4 md:px-8 py-4 md:py-6 text-right">
-                          <Link 
-                          href={`/sede/${s.slug}`} 
-                           className="bg-black text-white text-[8px] md:text-[10px] px-4 md:px-8 py-3 md:py-4 rounded-xl hover:bg-[#10b981] hover:text-black transition-all tracking-widest whitespace-nowrap"
-                            >
-                            EDITAR
-                          </Link>
-                    </td>
+                    <td className="px-2 md:px-4 py-4 md:py-6 text-right">
+  <Link 
+    href={`/sede/${s.slug}`} 
+    className="bg-black text-white text-[8px] md:text-[10px] px-3 md:px-6 py-3 md:py-4 rounded-xl hover:bg-[#10b981] hover:text-black transition-all tracking-widest whitespace-nowrap"
+  >
+    EDITAR
+  </Link>
+</td>
+<td className="px-2 md:px-4 py-4 md:py-6 text-right">
+  <button
+    onClick={() => eliminarSede(s.id, s.nombre)}
+    className="bg-red-500/20 text-red-400 text-[8px] md:text-[10px] px-3 md:px-4 py-3 md:py-4 rounded-xl hover:bg-red-500 hover:text-white transition-all tracking-widest whitespace-nowrap"
+  >
+    🗑️
+  </button>
+</td>
 
                   </tr>
                 ))}
