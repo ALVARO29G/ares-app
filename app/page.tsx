@@ -29,7 +29,25 @@ export default function AresApp() {
   const [sedes, setSedes] = useState<any[]>([])
   const [mostrarOpciones, setMostrarOpciones] = useState(false)
   const [aceptoTerminos, setAceptoTerminos] = useState(false) //terminos
+
+const [confirmModal, setConfirmModal] = useState<{
+  isOpen: boolean
+  sedeId: string | null
+  sedeNombre: string
+}>({
+  isOpen: false,
+  sedeId: null,
+  sedeNombre: ''
+})
+
   const [user, setUser] = useState<any>(null)
+
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+const showToast = (message: string, type: 'success' | 'error') => {
+  setToast({ message, type })
+  setTimeout(() => setToast(null), 3000)
+}
 
   const currentYear = new Date().getFullYear();
 
@@ -98,22 +116,33 @@ export default function AresApp() {
     }
   }
 
-  const eliminarSede = async (id: string, nombre: string) => {
-  if (!confirm(`¿Estás seguro de eliminar la sede "${nombre}"? Esta acción borrará también todos sus torneos, equipos y goleadores. NO se puede deshacer.`)) return
+  {/* FUNCION ELIMINAR SEDE */}
+const eliminarSede = async () => {
+  if (!confirmModal.sedeId) return
 
   const { error } = await supabase
     .from('sedes')
     .delete()
-    .eq('id', id)
+    .eq('id', confirmModal.sedeId)
+
+  setConfirmModal({ isOpen: false, sedeId: null, sedeNombre: '' })
 
   if (error) {
-    alert('Error al eliminar la sede: ' + error.message)
+    showToast('Error al eliminar la sede', 'error')
     return
   }
 
-  alert(`Sede "${nombre}" eliminada correctamente`)
-  fetchSedes()
+  showToast(`Sede "${confirmModal.sedeNombre}" eliminada`, 'success')
+  
+  // Actualizar la lista de sedes inmediatamente
+  const { data } = await supabase
+    .from('sedes')
+    .select('*')
+    .order('clicks', { ascending: false })
+  
+  if (data) setSedes(data)
 }
+
 
  const guardarSede = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault()
@@ -170,6 +199,27 @@ export default function AresApp() {
 
   return (
     <div className="min-h-screen bg-[#051a14] flex flex-col items-center font-sans p-4 md:p-8 text-gray-900">
+
+      {/* TOAST */}
+{/* TOAST */}
+{toast && (
+  <div className={`fixed top-5 right-5 z-[9999] px-6 py-4 rounded-2xl shadow-2xl animate-slideIn border-l-8 ${
+    toast.type === 'success' 
+      ? 'bg-[#061411] border-[#10b981] text-[#10b981]' 
+      : 'bg-[#061411] border-red-500 text-red-400'
+  }`}>
+    <div className="flex items-center gap-3">
+      <span className="text-lg">{toast.type === 'success' ? '✅' : '❌'}</span>
+      <span className="font-black uppercase text-xs tracking-widest">{toast.message}</span>
+      <button 
+        onClick={() => setToast(null)} 
+        className="ml-4 text-white/30 hover:text-white transition"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+)}
 
       {/* ESTADO SOCIO */}
       {user && (
@@ -338,15 +388,17 @@ export default function AresApp() {
     EDITAR
   </Link>
 </td>
-<td className="px-2 md:px-4 py-4 md:py-6 text-right">
+
+{/* boton eliminar */}
+<td className="px-4 py-4 text-right">
   <button
-    onClick={() => eliminarSede(s.id, s.nombre)}
-    className="bg-red-500/20 text-red-400 text-[8px] md:text-[10px] px-3 md:px-4 py-3 md:py-4 rounded-xl hover:bg-red-500 hover:text-white transition-all tracking-widest whitespace-nowrap"
+    onClick={() => setConfirmModal({ isOpen: true, sedeId: s.id, sedeNombre: s.nombre })}
+    className="text-red-400 hover:text-red-300 text-xl transition-colors"
+    title="Eliminar sede"
   >
     🗑️
   </button>
 </td>
-
                   </tr>
                 ))}
               </tbody>
@@ -354,6 +406,45 @@ export default function AresApp() {
           </div>
         </div>
       )}
+
+{/* MODAL DE CONFIRMACIÓN PARA ELIMINAR SEDE */}
+{confirmModal.isOpen && (
+  <div className="fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div className="bg-[#061411] border border-red-500/30 rounded-2xl p-8 max-w-md w-full shadow-[0_0_60px_rgba(0,0,0,0.9)]">
+      
+      <h3 className="text-red-400 font-black text-xl uppercase tracking-wider mb-2">
+        ⚠️ Eliminar Sede
+      </h3>
+      
+      <p className="text-white/70 text-sm mb-2 leading-relaxed">
+        ¿Estás seguro de eliminar{" "}
+        <span className="text-white font-bold">"{confirmModal.sedeNombre}"</span>?
+      </p>
+      
+      <p className="text-red-400/60 text-xs mb-8 leading-relaxed">
+        Se borrarán todos sus torneos, equipos, goleadores y partidos. Esta acción no se puede deshacer.
+      </p>
+      
+      <div className="flex gap-3">
+        <button
+          onClick={() => setConfirmModal({ isOpen: false, sedeId: null, sedeNombre: '' })}
+          className="flex-1 bg-white/5 border border-white/10 text-white font-black py-3 rounded-xl uppercase text-xs tracking-widest hover:bg-white/10 transition"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={eliminarSede}
+          className="flex-1 bg-red-500 text-white font-black py-3 rounded-xl uppercase text-xs tracking-widest hover:bg-red-600 transition"
+        >
+          Sí, Eliminar
+        </button>
+      </div>
+      
+    </div>
+  </div>
+)}
+
+
 
       {/* RANKING LIGA ARES (SIN MODIFICACIONES) */}
       <div className="w-full max-w-6xl mt-10 bg-white rounded-[40px] shadow-2xl overflow-hidden border border-gray-100 mb-20">
@@ -414,5 +505,8 @@ export default function AresApp() {
         </div>
       </footer>
     </div>
+
+
   )
 }
+
