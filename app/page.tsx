@@ -200,7 +200,6 @@ const eliminarSede = async () => {
   return (
     <div className="min-h-screen bg-[#051a14] flex flex-col items-center font-sans p-4 md:p-8 text-gray-900">
 
-      {/* TOAST */}
 {/* TOAST */}
 {toast && (
   <div className={`fixed top-5 right-5 z-[9999] px-6 py-4 rounded-2xl shadow-2xl animate-slideIn border-l-8 ${
