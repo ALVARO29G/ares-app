@@ -55,6 +55,9 @@ export default function GestionTorneo() {
   const [torneo, setTorneo] = useState<any>(null)
   const [descripcion, setDescripcion] = useState('')
 
+  const [editandoNombre, setEditandoNombre] = useState(false)
+  const [nombreTorneo, setNombreTorneo] = useState('')
+
   const [equipos, setEquipos] = useState<Equipo[]>([])
   const [goleadores, setGoleadores] = useState<Goleador[]>([])
 
@@ -143,6 +146,7 @@ export default function GestionTorneo() {
 
     setTorneo(torneoData)
     setDescripcion(torneoData.descripcion || '')
+    setNombreTorneo(torneoData.nombre || '') // Para editar el nombre de mi torneo
 
     if (session) {
       const { data: sede } = await supabase
@@ -156,11 +160,21 @@ export default function GestionTorneo() {
       }
     }
 
-    await fetchEquipos()
-    await fetchGoleadores()
+    const { data: equiposData } = await supabase
+  .from('equipos')
+  .select('*')
+  .eq('torneo_id', torneoId)
+  .order('puntos', { ascending: false })
+  .order('diferencia', { ascending: false })
+  .order('goles_favor', { ascending: false })
+
+setEquipos(equiposData || [])
+
+await fetchGoleadores(equiposData || [])
 
     setLoading(false)
   }
+
 
   const fetchEquipos = async () => {
     const { data } = await supabase
@@ -174,22 +188,22 @@ export default function GestionTorneo() {
     setEquipos(data || [])
   }
 
-  const fetchGoleadores = async () => {
-    const equiposDelTorneo = equipos.map(e => e.id)
-    
-    if (equiposDelTorneo.length === 0) {
-      setGoleadores([])
-      return
-    }
+ const fetchGoleadores = async (equiposList: Equipo[]) => {
+  const equiposDelTorneo = equiposList.map(e => e.id)
 
-    const { data } = await supabase
-      .from('goleo')
-      .select('*, equipos(nombre)')
-      .in('equipo_id', equiposDelTorneo)
-      .order('goles', { ascending: false })
-
-    setGoleadores(data || [])
+  if (equiposDelTorneo.length === 0) {
+    setGoleadores([])
+    return
   }
+
+  const { data } = await supabase
+    .from('goleo')
+    .select('*, equipos(nombre)')
+    .in('equipo_id', equiposDelTorneo)
+    .order('goles', { ascending: false })
+
+  setGoleadores(data || [])
+}
 
   const agregarEquipo = async () => {
     if (!nuevoEquipo.trim()) {
@@ -238,7 +252,7 @@ export default function GestionTorneo() {
 
         showToast(`Equipo "${nombre}" eliminado`, 'success')
         fetchEquipos()
-        fetchGoleadores()
+        fetchGoleadores(equipos)
         closeConfirm()
       },
       'danger'
@@ -278,7 +292,7 @@ export default function GestionTorneo() {
       fetchEquipos()
       showToast('Estadística actualizada', 'success')
     } else if (tabla === 'goleo') {
-      fetchGoleadores()
+      fetchGoleadores(equipos)
       showToast('Goles actualizados', 'success')
     }
 
@@ -315,7 +329,7 @@ export default function GestionTorneo() {
     showToast(`Goleador "${nuevoJugador.trim()}" agregado a ${equipoNombre}`, 'success')
     setNuevoJugador('')
     setEquipoSeleccionado('')
-    fetchGoleadores()
+    fetchGoleadores(equipos)
   }
 
   const eliminarGoleador = async (id: string, nombre: string) => {
@@ -332,7 +346,7 @@ export default function GestionTorneo() {
         }
 
         showToast(`Goleador "${nombre}" eliminado`, 'success')
-        fetchGoleadores()
+        fetchGoleadores(equipos)
         closeConfirm()
       },
       'danger'
@@ -353,6 +367,41 @@ export default function GestionTorneo() {
 
     showToast('Descripción guardada correctamente', 'success')
   }
+
+const guardarNombre = async () => {
+  if (!nombreTorneo.trim()) {
+    showToast('El nombre no puede estar vacío', 'warning')
+    return
+  }
+
+  // Guardar en Supabase
+  const { data, error } = await supabase
+    .from('torneos')
+    .update({ nombre: nombreTorneo.trim() })
+    .eq('id', torneoId)
+    .select() // ← Esto devuelve los datos actualizados
+
+  console.log('📤 Respuesta de Supabase:', { data, error })
+
+  if (error) {
+    console.error('❌ Error al guardar:', error)
+    showToast('Error al guardar: ' + error.message, 'error')
+    return
+  }
+
+  if (!data || data.length === 0) {
+    console.error('❌ No se actualizó ningún registro. Posible problema de RLS o ID incorrecto.')
+    showToast('Error: No se pudo guardar. Verifica los permisos.', 'error')
+    return
+  }
+
+  console.log('✅ Nombre actualizado en BD:', data)
+  
+  // Actualizar estado local
+  setTorneo((prev: any) => ({ ...prev, nombre: nombreTorneo.trim() }))
+  setEditandoNombre(false)
+  showToast('Nombre actualizado correctamente', 'success')
+}
 
   const renderEditableCell = (
     type: 'equipo' | 'goleador',
@@ -543,9 +592,60 @@ const descargarComoJPG = async () => {
           </button>
 
           <div className="flex items-center gap-4">
-            <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter">
-              {torneo.nombre}
-            </h1>
+
+            {editandoNombre ? (
+  <div className="flex items-center gap-2">
+    <input
+      type="text"
+      value={nombreTorneo}
+      onChange={(e) => setNombreTorneo(e.target.value)}
+      className="bg-black/40 border border-[#10b981] rounded-xl px-4 py-2 text-white font-black italic uppercase text-2xl md:text-4xl tracking-tighter focus:outline-none focus:ring-2 focus:ring-[#10b981]/40 w-full max-w-md"
+      autoFocus
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') guardarNombre()
+        if (e.key === 'Escape') {
+          setNombreTorneo(torneo.nombre)
+          setEditandoNombre(false)
+        }
+      }}
+    />
+
+    <button
+      onClick={guardarNombre}
+      className="bg-[#10b981] text-black font-black text-[10px] uppercase px-3 py-2 rounded-lg hover:scale-105 transition whitespace-nowrap"
+    >
+      Guardar
+    </button>
+
+    <button
+      onClick={() => {
+        setNombreTorneo(torneo.nombre)
+        setEditandoNombre(false)
+      }}
+      className="bg-white/10 text-white font-black text-[10px] uppercase px-3 py-2 rounded-lg hover:bg-white/20 transition whitespace-nowrap"
+    >
+      ✕
+    </button>
+  </div>
+) : (
+  <div className="flex items-center gap-2 md:gap-4">
+    <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter">
+      {torneo.nombre}
+    </h1>
+    {isOwner && (
+      <button
+        onClick={() => setEditandoNombre(true)}
+        className="text-white/30 hover:text-[#10b981] transition"
+        title="Editar nombre"
+      >
+        <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+      </button>
+    )}
+  </div>
+)}
+
             <button
               onClick={descargarComoJPG}
               className="bg-white/10 border border-white/20 text-white font-black text-[10px] uppercase px-4 py-2 rounded-xl tracking-widest hover:bg-[#10b981] hover:text-black transition-all flex items-center gap-2"
@@ -571,7 +671,7 @@ const descargarComoJPG = async () => {
               disabled={!isOwner}
               className="w-full p-4 bg-black/40 border border-white/10 rounded-xl text-white font-mono text-sm focus:border-[#10b981] outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
               rows={3}
-              placeholder={isOwner ? "Describe tu torneo..." : "Sin descripción"}
+              placeholder={isOwner ? "Describe tu torneo (Precios, modalidad, etc.)" : "Sin descripción"}
             />
 
             {isOwner && (

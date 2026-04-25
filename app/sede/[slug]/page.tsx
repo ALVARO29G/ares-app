@@ -114,9 +114,11 @@ export default async function SedePage({ params }: { params: Promise<{ slug: str
               <span className="text-black font-black uppercase text-[10px] tracking-widest opacity-60">
                 Gestión de Unidad:
               </span>
+
               <h2 className="text-black font-[1000] uppercase italic text-4xl leading-tight tracking-tighter">
                 {sede.nombre}
               </h2>
+              
             </div>
 
             <div className="flex items-center gap-4 w-full md:w-auto">
@@ -163,16 +165,21 @@ export default async function SedePage({ params }: { params: Promise<{ slug: str
         </nav>
 
         <header className="mb-12">
-          <h1 className="text-7xl md:text-9xl font-black uppercase italic tracking-tighter leading-[0.8] mb-6">
-            {sede.nombre}
-          </h1>
+
+          <h1 className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black uppercase italic tracking-tighter leading-[0.85] mb-6 break-words hyphens-auto">
+  {sede.nombre}
+</h1>
+
           <div className="flex items-center gap-4">
-            <span className="bg-[#10b981] text-black font-black text-[10px] px-4 py-1.5 rounded-full uppercase italic shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-              Verified Sede 2026
+
+            <span className="bg-[#10b981] text-black font-black text-[8px] sm:text-[10px] px-3 sm:px-4 py-1 sm:py-1.5 rounded-full uppercase italic shadow-[0_0_15px_rgba(16,185,129,0.3)] whitespace-nowrap">
+            Verified Sede 2026
             </span>
-            <p className="text-gray-400 font-bold uppercase text-xs tracking-widest italic">
-              Ubicación: {sede.ubicacion_texto}
+
+            <p className="text-gray-400 font-bold uppercase text-[10px] sm:text-xs tracking-widest italic truncate">
+            Ubicación: {sede.ubicacion_texto}
             </p>
+
           </div>
         </header>
 
@@ -198,24 +205,23 @@ export default async function SedePage({ params }: { params: Promise<{ slug: str
                     key={torneo.id}
                     className="bg-white/5 border border-white/10 p-8 rounded-[3rem] backdrop-blur-md"
                   >
-                    {/* Vista torneo */}
-                   <div className="flex justify-between items-center mb-8 px-2">
-  <h4 className="text-3xl font-black uppercase italic tracking-tighter text-[#10b981]">
+  {/* Vista torneo */}
+  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-8 px-2">
+  <h4 className="text-2xl sm:text-3xl font-black uppercase italic tracking-tighter text-[#10b981] break-words">
     {torneo.nombre}
   </h4>
-  <div className="flex gap-2">
+  <div className="flex gap-2 flex-shrink-0">
     {esDuenio && (
       <Link
         href={`/socio/panel/torneo/${torneo.id}`}
-        className="text-[15px] font-black uppercase bg-[#10b981] text-black px-3 py-1 rounded-lg hover:bg-white transition-colors"
+        className="text-[9px] font-black uppercase bg-[#10b981] text-black px-4 py-2 rounded-lg hover:bg-white transition-colors whitespace-nowrap"
       >
         EDITAR
       </Link>
     )}
-      {/* BOTÓN VER - Visible para TODOS */}
     <Link
       href={`/torneo/${torneo.id}`}
-      className="text-[30px] font-black uppercase bg-white/10 text-white px-3 py-1 rounded-lg hover:bg-white hover:text-black transition-colors"
+      className="text-[9px] font-black uppercase bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white hover:text-black transition-colors whitespace-nowrap"
     >
       VER
     </Link>

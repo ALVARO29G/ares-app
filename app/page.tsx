@@ -176,7 +176,7 @@ export default function AresApp() {
         </div>
 
         <button onClick={() => { setView(view === 'jugador' ? 'socio' : 'jugador'); setQuery(''); setMostrarOpciones(false); }} className="bg-[#10b981] text-black font-black uppercase text-[10px] px-8 py-4 rounded-full tracking-widest hover:scale-105 transition-all">
-          {view === 'jugador' ? (user ? 'ADMINISTRAR' : 'ENTRADA SOCIO') : 'VOLVER AL RADAR'}
+          {view === 'jugador' ? (user ? 'CREAR SEDE' : 'ENTRADA SOCIO') : 'VOLVER AL RADAR'} {/* CAMBIO DE ADMIN. por CREAR */}
         </button>
       </header>
 
@@ -237,27 +237,28 @@ export default function AresApp() {
   <>
     {/* ✅ CHECKBOX DE TÉRMINOS Y CONDICIONES */}
     {user && (
-      <div className="flex items-start gap-3 my-4">
-        <input
-          type="checkbox"
-          id="terminos"
-          checked={aceptoTerminos}
-          onChange={(e) => setAceptoTerminos(e.target.checked)}
-          className="mt-1 w-4 h-4 bg-black border-2 border-[#10b981] rounded focus:ring-[#10b981] focus:ring-2 accent-[#10b981]"
-          required
-        />
-        <label htmlFor="terminos" className="text-white/60 text-xs leading-relaxed">
-          He leído y acepto los{' '}
-          <Link href="/legal" target="_blank" className="text-[#10b981] hover:underline font-bold">
-            Términos y Condiciones
-          </Link>{' '}
-          y la{' '}
-          <Link href="/legal" target="_blank" className="text-[#10b981] hover:underline font-bold">
-            Política de Privacidad
-          </Link>{' '}
-          de ARES FUTBOL LEÓN.
-        </label>
-      </div>
+
+     <div className="flex items-start gap-2 md:gap-3 my-4">
+  <input
+    type="checkbox"
+    id="terminos"
+    checked={aceptoTerminos}
+    onChange={(e) => setAceptoTerminos(e.target.checked)}
+    className="mt-0.5 w-4 h-4 flex-shrink-0 bg-black border-2 border-[#10b981] rounded focus:ring-[#10b981] focus:ring-2 accent-[#10b981]"
+    required
+  />
+  <label htmlFor="terminos" className="text-white/50 text-[10px] md:text-xs leading-relaxed">
+    He leído y acepto los{' '}
+    <Link href="/legal" target="_blank" className="text-[#10b981] hover:underline font-bold whitespace-nowrap">
+      Términos y Condiciones
+    </Link>{' '}
+    y la{' '}
+    <Link href="/legal" target="_blank" className="text-[#10b981] hover:underline font-bold whitespace-nowrap">
+      Política de Privacidad
+    </Link>{' '}
+    de ARES FUTBOL LEÓN.
+  </label>
+</div>
     )}
     
     <button 
@@ -292,7 +293,7 @@ export default function AresApp() {
         <div className="w-full max-w-6xl bg-white rounded-[40px] shadow-2xl overflow-hidden border-t-8 border-[#10b981] mb-10">
           <div className="bg-black p-6 flex justify-between items-center">
             <h3 className="text-white font-black italic uppercase tracking-tighter text-2xl">Mis Unidades Ares</h3>
-            <span className="text-[#10b981] font-mono text-[10px] tracking-[0.3em]">PANEL_CONTROL</span>
+            <span className="text-[#10b981] font-mono text-[10px] tracking-[0.3em]"> PANEL_CONTROL</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -308,14 +309,16 @@ export default function AresApp() {
                   <tr key={`mis-sedes-${s.id}`} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                     <td className="px-8 py-6 text-lg tracking-tighter text-gray-900">{s.nombre}</td>
                     <td className="px-8 py-6 text-gray-500 text-xs">{s.ubicacion_texto}</td>
-                    <td className="px-8 py-6 text-right">
-                      <Link 
-                        href={`/sede/${s.slug}`} 
-                        className="bg-black text-white text-[10px] px-8 py-4 rounded-xl hover:bg-[#10b981] hover:text-black transition-all tracking-widest"
-                      >
-                        ADMINISTRAR / EDITAR
-                      </Link>
+
+                    <td className="px-4 md:px-8 py-4 md:py-6 text-right">
+                          <Link 
+                          href={`/sede/${s.slug}`} 
+                           className="bg-black text-white text-[8px] md:text-[10px] px-4 md:px-8 py-3 md:py-4 rounded-xl hover:bg-[#10b981] hover:text-black transition-all tracking-widest whitespace-nowrap"
+                            >
+                            EDITAR
+                          </Link>
                     </td>
+
                   </tr>
                 ))}
               </tbody>
