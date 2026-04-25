@@ -161,7 +161,7 @@ const descargarComoJPG = async () => {
             {torneo.descripcion && (
             <div className="bg-white/5 rounded-3xl border border-white/10 overflow-hidden mt-6">
             <div className="p-6 border-b border-white/10">
-          <h2 className="text-[#10b981] font-black text-xl uppercase tracking-tighter">
+          <h2 className="text-white font-black text-xl uppercase tracking-tighter">
             Descripción del Torneo
          </h2>
             </div>
